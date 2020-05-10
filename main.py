@@ -1,6 +1,7 @@
 import requests
 import json
 import random
+import re
 
 CUBE_URL = 'http://dev.tawa.wtf:8000/api/cube/?api_key=lolbbq'
 PLAYERS = ['Player 1', 'Player 2', 'Player 3', 'Player 4', 'Player 5', 'Player 6', 'Player 7', 'Player 8']
@@ -57,6 +58,10 @@ class Pack:
     def removeCard(self, index):
         self.cards.pop(index)
 
+    def numCardsLeft(self):
+        return len(self.cards)
+
+
 
 class Player:
     def __init__(self, name):
@@ -107,6 +112,17 @@ class Game:
         
     def selectionRound(self, player):
 
+        def askForChoice(pack):
+            while True:
+                try:
+                    choice = int(input("Please input your choice: ")) - 1
+                    while choice not in range(0, pack.numCardsLeft()):
+                        print('This is not an integer in the range of cards available')
+                        choice = int(input("Please input your choice: ")) - 1
+                    return choice
+                except:
+                    print('This is not an integer in the range of cards available')
+
         print(f"{player.name}: Round {self.round} Card {self.card}")
         print('Please select a card from the following cards:')
 
@@ -114,13 +130,12 @@ class Game:
 
         player.packs[index].displayPack()
 
-        choice = input("Please input your choice: ")
-        choice = int(choice) - 1
+        choice = askForChoice(player.packs[0])
+
         player.addSelectedCard(player.packs[index].cards[choice])
         player.packs[index].removeCard(choice)
-        player.packs[index].displayPack()
 
-        if len(player.packs[index].cards) == 0:
+        if player.packs[index].numCardsLeft() == 0:
             self.round += 1
         else:
             self.card += 1
@@ -134,9 +149,6 @@ while game.round < PACKS_PER_PLAYER + 1:
 
 print(game.players[0].selectedcards)
 
-
-
-
 if DEBUG is True:
     ## Debug JSON Export:
     json_export = {}
@@ -145,7 +157,5 @@ if DEBUG is True:
 
     with open('draft.json', 'w+') as outfile:
         json.dump(json_export, outfile)
-
-
 
 
