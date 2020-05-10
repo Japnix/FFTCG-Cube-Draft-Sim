@@ -83,6 +83,9 @@ class Player:
     def addSelectedCard(self, card):
         self.selectedcards.append(card)
 
+    def removePack(self, index):
+        self.packs.pop(index)
+
 
 class Game:
     def __init__(self, cube, players):
@@ -126,7 +129,11 @@ class Game:
         print(f"{player.name}: Round {self.round} Card {self.card}")
         print('Please select a card from the following cards:')
 
-        index = self.round - 1
+        #index = self.round - 1
+
+        # We will always be picking out of the pack in spot 0, and then popping it
+        # out of the list when, to put a new car in index 0
+        index = 0
 
         player.packs[index].displayPack()
 
@@ -137,6 +144,7 @@ class Game:
 
         if player.packs[index].numCardsLeft() == 0:
             self.round += 1
+            player.removePack(0)
         else:
             self.card += 1
         
