@@ -132,7 +132,14 @@ class Game:
         print('Please select a card from the following cards:')
 
         pack.displayPack()
+
+        # User input game
         choice = askForChoice(pack)
+
+        # debug to go through the game quickly
+        # basically everyone chooses the first card
+        #choice = 0
+
         player.addSelectedCard(pack.cards[choice])
         pack.removeCard(choice)
 
@@ -174,11 +181,14 @@ class Game:
             for card in range(0, 12):
                 for player in game.players:
                     game.selectionRound(player, player.currentpack)
-                if game.round % 2 != 0:
+
+                if game.round % 2 != 0 and game.round != 5:
                     game.allPassLeft()
-                else:
+                elif game.round % 2 == 0 and game.round != 5:
                     game.allPassRight()
             game.round += 1
+
+        print('Finished Game')
 
 
 game = Game(cube=Cube(), players=PLAYERS)
