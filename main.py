@@ -186,6 +186,8 @@ class Game:
                     game.allPassLeft()
                 elif game.round % 2 == 0 and game.round != 5:
                     game.allPassRight()
+                else:
+                    pass
             game.round += 1
 
         print('Finished Game')
