@@ -165,7 +165,7 @@ class Game:
         return self.players.index(player)
 
     def startGame(self):
-        for round in range(0, 6):
+        for round in range(0, 5):
             if game.round % 2 != 0:
                 print(f"Beginning of Round {game.round} - PASS LEFT")
             else:
