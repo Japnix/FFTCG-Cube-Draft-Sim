@@ -1,8 +1,6 @@
 import requests
 import random
 
-DEBUG = False
-
 
 class Cube:
     def __init__(self, cardsperpack, totalpacks):
@@ -88,7 +86,7 @@ class Player:
 
 
 class Game:
-    def __init__(self, numofplayers):
+    def __init__(self, numofplayers, debug=False):
         self.players = []
         self.numofplayers = numofplayers
         self.round = 1
@@ -96,6 +94,7 @@ class Game:
         self.cardsperpack = 12
         self.totalpacks = self.packsperplayer * self.numofplayers
         self.cube = Cube(cardsperpack=self.cardsperpack, totalpacks=self.totalpacks)
+        self.debug = debug
 
     def addPlayer(self, player):
         self.players.append(player)
@@ -109,10 +108,10 @@ class Game:
     def askNumPlayers(self):
         while True:
             try:
-                numberofplayers = int(input('How many players will be drafting (1-8)?'))
+                numberofplayers = int(input('How many players will be drafting (1-8)? '))
                 while numberofplayers not in range(1,9):
                     print('This is not a valid number of players')
-                    numberofplayers = int(input('How many players will be drafting (1-8)?'))
+                    numberofplayers = int(input('How many players will be drafting (1-8)? '))
 
                 return numberofplayers
             except:
@@ -120,7 +119,7 @@ class Game:
 
     def askPlayerNames(self):
         for i in range(0,self.numofplayers):
-            name = input(f"What is Player {i+1}'s Name?")
+            name = input(f"What is Player {i+1}'s Name? ")
             player = Player(name)
             self.addPlayer(player)
 
@@ -149,12 +148,10 @@ class Game:
 
         pack.displayPack()
 
-        # User input game
-        choice = askForChoice(pack)
-
-        # debug to go through the game quickly
-        # basically everyone chooses the first card
-        #choice = 0
+        if self.debug is True:
+            choice = 0
+        else:
+            choice = askForChoice(pack)
 
         player.addSelectedCard(pack.cards[choice])
         pack.removeCard(choice)
@@ -209,7 +206,7 @@ class Game:
         print('Finished Game')
 
 
-game = Game(numofplayers=8)
+game = Game(numofplayers=8, debug=True)
 game.prepareGame()
 game.startGame()
 
