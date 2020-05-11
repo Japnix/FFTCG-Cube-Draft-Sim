@@ -1,6 +1,6 @@
 import requests
 import random
-
+import json
 
 class Cube:
     def __init__(self, cardsperpack, totalpacks):
@@ -9,6 +9,12 @@ class Cube:
         self.packs = []
         self.cardsperpack = cardsperpack
         self.totalpacks = totalpacks
+
+    def getPack(self, index):
+        return self.packs[index]
+
+    def removePack(self, index):
+        return self.packs.pop(index)
 
     def getCards(self):
         return self.cards
@@ -31,6 +37,12 @@ class Cube:
 
     def getAllPacks(self):
         return self.packs
+
+    def addCard(self, card):
+        self.cards.appen(card)
+
+    def removeCard(self, index):
+        self.cards.pop(index)
 
 
 class Pack:
@@ -55,6 +67,9 @@ class Pack:
     def numCardsLeft(self):
         return len(self.cards)
 
+    def getCard(self, index):
+        return self.cards[index]
+
 
 class Player:
     def __init__(self, name):
@@ -67,23 +82,21 @@ class Player:
     def addPack(self, pack):
         self.packs.append(pack)
 
-    def packstoDict(self):
-        packs = []
-        for pack in self.packs:
-            packs.append(pack.cards)
-
-        return packs
-
     def addSelectedCard(self, card):
         self.selectedcards.append(card)
 
     def removePack(self, index):
         self.packs.pop(index)
 
+    def getPack(self,index):
+        return self.packs[index]
+
     def openPack(self):
-        self.currentpack = self.packs[0]
+        self.currentpack = self.getPack(0)
         self.removePack(0)
 
+    def setQueuedToCurrent(self):
+        self.currentpack = self.queuedpack
 
 class Game:
     def __init__(self, numofplayers, debug=False):
@@ -102,8 +115,8 @@ class Game:
     def giveAllPacks(self):
         for player in self.players:
             for x in range(0, self.packsperplayer):
-                player.addPack(self.cube.packs[0])
-                self.cube.packs.pop(0)
+                player.addPack(self.cube.getPack(0))
+                self.cube.removePack(0)
 
     def askNumPlayers(self):
         while True:
@@ -120,8 +133,7 @@ class Game:
     def askPlayerNames(self):
         for i in range(0,self.numofplayers):
             name = input(f"What is Player {i+1}'s Name? ")
-            player = Player(name)
-            self.addPlayer(player)
+            self.addPlayer(Player(name))
 
     def prepareGame(self):
         self.numofplayers = self.askNumPlayers()
@@ -153,7 +165,7 @@ class Game:
         else:
             choice = askForChoice(pack)
 
-        player.addSelectedCard(pack.cards[choice])
+        player.addSelectedCard(pack.getCard(choice))
         pack.removeCard(choice)
 
     def allOpenPack(self):
@@ -176,7 +188,7 @@ class Game:
             print(f"{player.name} gets {game.players[(index - 1) % self.numofplayers].name}'s pack ")
 
         for player in self.players:
-            player.currentpack = player.queuedpack
+            player.setQueuedToCurrent()
 
     def getPlayer(self, index):
         return self.players[index]
@@ -205,10 +217,20 @@ class Game:
 
         print('Finished Game')
 
+    def finalSelectedToJson(self, filename):
+        exportdict = {}
+
+        for player in self.players:
+            exportdict[player.name] = {'selectedcards': player.selectedcards}
+
+        with open(filename, 'w+') as outfile:
+            json.dump(exportdict, outfile)
+
 
 game = Game(numofplayers=8, debug=True)
 game.prepareGame()
 game.startGame()
+game.finalSelectedToJson('draft.json')
 
 
 
