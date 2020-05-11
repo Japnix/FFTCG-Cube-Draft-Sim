@@ -1,14 +1,12 @@
 import requests
-import json
 import random
-import re
 
 CUBE_URL = 'http://dev.tawa.wtf:8000/api/cube/?api_key=lolbbq'
 PLAYERS = ['Player 1', 'Player 2', 'Player 3', 'Player 4', 'Player 5', 'Player 6', 'Player 7', 'Player 8']
 CARDS_PER_PACK = 12
 PACKS_PER_PLAYER = 5
 TOTAL_PACKS = len(PLAYERS) * PACKS_PER_PLAYER
-DEBUG = True
+DEBUG = False
 
 
 class Cube:
@@ -62,12 +60,12 @@ class Pack:
         return len(self.cards)
 
 
-
 class Player:
     def __init__(self, name):
         self.name = name
         self.packs = []
-        self.currentpack = []
+        self.currentpack = Pack()
+        self.queuedpack = Pack()
         self.selectedcards = []
 
     def addPack(self, pack):
@@ -85,6 +83,10 @@ class Player:
 
     def removePack(self, index):
         self.packs.pop(index)
+
+    def openPack(self):
+        self.currentpack = self.packs[0]
+        self.removePack(0)
 
 
 class Game:
@@ -113,7 +115,7 @@ class Game:
         self.cube.makeAllPacks()
         self.giveAllPacks()
         
-    def selectionRound(self, player):
+    def selectionRound(self, player, pack):
 
         def askForChoice(pack):
             while True:
@@ -126,44 +128,62 @@ class Game:
                 except:
                     print('This is not an integer in the range of cards available')
 
-        print(f"{player.name}: Round {self.round} Card {self.card}")
+        print(f"{player.name}:")
         print('Please select a card from the following cards:')
 
-        #index = self.round - 1
+        pack.displayPack()
+        choice = askForChoice(pack)
+        player.addSelectedCard(pack.cards[choice])
+        pack.removeCard(choice)
 
-        # We will always be picking out of the pack in spot 0, and then popping it
-        # out of the list when, to put a new car in index 0
-        index = 0
+    def allOpenPack(self):
+        for player in self.players:
+            player.openPack()
 
-        player.packs[index].displayPack()
+    def allPassLeft(self):
+        for player in self.players:
+            index = self.getPlayerIndex(player)
+            player.queuedpack = game.players[(index + 1) % 8].currentpack
+            print(f"{player.name} gets {game.players[(index + 1) % 8].name}'s pack ")
 
-        choice = askForChoice(player.packs[0])
+        for player in self.players:
+            player.currentpack = player.queuedpack
 
-        player.addSelectedCard(player.packs[index].cards[choice])
-        player.packs[index].removeCard(choice)
+    def allPassRight(self):
+        for player in self.players:
+            index = self.getPlayerIndex(player)
+            player.queuedpack = game.players[(index - 1) % 8].currentpack
+            print(f"{player.name} gets {game.players[(index - 1) % 8].name}'s pack ")
 
-        if player.packs[index].numCardsLeft() == 0:
-            self.round += 1
-            player.removePack(0)
-        else:
-            self.card += 1
-        
+        for player in self.players:
+            player.currentpack = player.queuedpack
+
+    def getPlayer(self, index):
+        return self.players[index]
+
+    def getPlayerIndex(self, player):
+        return self.players.index(player)
+
+    def startGame(self):
+        for round in range(0, 6):
+            if game.round % 2 != 0:
+                print(f"Beginning of Round {game.round} - PASS LEFT")
+            else:
+                print(f"Beginning of Round {game.round} - PASS RIGHT")
+            game.allOpenPack()
+            for card in range(0, 12):
+                for player in game.players:
+                    game.selectionRound(player, player.currentpack)
+                if game.round % 2 != 0:
+                    game.allPassLeft()
+                else:
+                    game.allPassRight()
+            game.round += 1
+
 
 game = Game(cube=Cube(), players=PLAYERS)
 game.prepareGame()
+game.startGame()
 
-while game.round < PACKS_PER_PLAYER + 1:
-    game.selectionRound(game.players[0])
-
-print(game.players[0].selectedcards)
-
-if DEBUG is True:
-    ## Debug JSON Export:
-    json_export = {}
-    for player in game.players:
-        json_export[player.name] = {'packs' : player.packstoDict()}
-
-    with open('draft.json', 'w+') as outfile:
-        json.dump(json_export, outfile)
 
 
