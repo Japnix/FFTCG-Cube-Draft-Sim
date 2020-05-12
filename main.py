@@ -1,9 +1,13 @@
 import requests
 import random
 import json
+from codetiming import Timer
+
+DEBUG = True
+
 
 class Cube:
-    def __init__(self, cardsperpack, totalpacks):
+    def __init__(self, cardsperpack=12, totalpacks=40):
         self.cubeurl = 'http://dev.tawa.wtf:8000/api/cube/?api_key=lolbbq'
         self.cards = requests.get(self.cubeurl).json()
         self.packs = []
@@ -98,15 +102,16 @@ class Player:
     def setQueuedToCurrent(self):
         self.currentpack = self.queuedpack
 
+
 class Game:
-    def __init__(self, numofplayers, debug=False):
-        self.players = []
+    def __init__(self, numofplayers=int(), debug=False, players=[]):
+        self.players = players
         self.numofplayers = numofplayers
         self.round = 1
         self.packsperplayer = 5
         self.cardsperpack = 12
-        self.totalpacks = self.packsperplayer * self.numofplayers
-        self.cube = Cube(cardsperpack=self.cardsperpack, totalpacks=self.totalpacks)
+        self.totalpacks = int()
+        self.cube = None
         self.debug = debug
 
     def addPlayer(self, player):
@@ -136,8 +141,18 @@ class Game:
             self.addPlayer(Player(name))
 
     def prepareGame(self):
-        self.numofplayers = self.askNumPlayers()
-        self.askPlayerNames()
+        if not self.players:
+            self.numofplayers = self.askNumPlayers()
+            self.askPlayerNames()
+            self.totalpacks = self.numofplayers * self.packsperplayer
+            self.cube = Cube(cardsperpack=12, totalpacks=self.totalpacks)
+        else:
+            self.numofplayers = len(self.players)
+            self.totalpacks = self.numofplayers * self.packsperplayer
+            for index in range(0,len(self.players)):
+                self.players[index] = Player(self.players[index])
+            self.cube = Cube(cardsperpack=12, totalpacks=self.totalpacks)
+
         self.cube.shuffleCube()
         self.cube.makeAllPacks()
         self.giveAllPacks()
@@ -161,7 +176,7 @@ class Game:
         pack.displayPack()
 
         if self.debug is True:
-            choice = 0
+            choice = random.randrange(0, pack.numCardsLeft())
         else:
             choice = askForChoice(pack)
 
@@ -227,10 +242,25 @@ class Game:
             json.dump(exportdict, outfile)
 
 
-game = Game(numofplayers=8, debug=True)
+# Timer for testing some code run times
+t = Timer()
+
+t.start()
+
+# If DEBUG is true than we provide names of players and the game will play it self
+# having all players choose random cards in the pack presented to them.  This should always run.
+if DEBUG is True:
+    players = ['Tawa', 'Gally', 'Joe', 'Tyler', 'Hunter', 'Shishir', 'Angel', 'James']
+    game = Game(numofplayers=len(players), debug=True, players=players)
+
+# Otherwise we play the game normally
+else:
+    game = Game()
+
 game.prepareGame()
 game.startGame()
 game.finalSelectedToJson('draft.json')
 
+t.stop()
 
 
