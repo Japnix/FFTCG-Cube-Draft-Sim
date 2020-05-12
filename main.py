@@ -230,11 +230,12 @@ class Game:
 
                 if game.round % 2 != 0 and game.round != 5:
                     game.allPassLeft()
+                    self.round += 1
                 elif game.round % 2 == 0 and game.round != 5:
                     game.allPassRight()
+                    self.round += 1
                 else:
                     pass
-            self.round += 1
 
         print('Finished Game')
 
