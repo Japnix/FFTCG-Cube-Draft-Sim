@@ -3,6 +3,9 @@ import random
 import json
 from codetiming import Timer
 
+__author__ = 'Japnix'
+
+
 DEBUG = True
 
 
@@ -23,6 +26,9 @@ class Cube:
     def getCards(self):
         return self.cards
 
+    def getCard(self, index):
+        return self.cards[index]
+
     def shuffleCube(self):
         random.shuffle(self.cards)
 
@@ -30,23 +36,23 @@ class Cube:
         pack = Pack()
         if len(self.cards) >= self.cardsperpack:
             for x in range(0, self.cardsperpack):
-                pack.addCard(self.cards[0])
-                self.cards.pop(0)
+                pack.addCard(self.getCard(0))
+                self.removeCard(0)
 
         return pack
 
     def makeAllPacks(self):
-        for x in range(0,self.totalpacks):
-            self.packs.append(self.makePack())
+        for x in range(0, self.totalpacks):
+            self.addPack(self.makePack())
 
     def getAllPacks(self):
         return self.packs
 
-    def addCard(self, card):
-        self.cards.appen(card)
-
     def removeCard(self, index):
         self.cards.pop(index)
+
+    def addPack(self, index):
+        self.packs.append(index)
 
 
 class Pack:
@@ -79,8 +85,8 @@ class Player:
     def __init__(self, name):
         self.name = name
         self.packs = []
-        self.currentpack = Pack()
-        self.queuedpack = Pack()
+        self.currentpack = None
+        self.queuedpack = None
         self.selectedcards = []
 
     def addPack(self, pack):
@@ -104,7 +110,7 @@ class Player:
 
 
 class Game:
-    def __init__(self, numofplayers=int(), debug=False, players=[]):
+    def __init__(self, numofplayers=int(), debug=False, players=None):
         self.players = players
         self.numofplayers = numofplayers
         self.round = 1
@@ -213,7 +219,7 @@ class Game:
 
     def startGame(self):
         for round in range(0, 5):
-            if game.round % 2 != 0:
+            if self.round % 2 != 0:
                 print(f"Beginning of Round {game.round} - PASS LEFT")
             else:
                 print(f"Beginning of Round {game.round} - PASS RIGHT")
@@ -228,7 +234,7 @@ class Game:
                     game.allPassRight()
                 else:
                     pass
-            game.round += 1
+            self.round += 1
 
         print('Finished Game')
 
