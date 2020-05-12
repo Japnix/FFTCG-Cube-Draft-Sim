@@ -5,7 +5,6 @@ from codetiming import Timer
 
 __author__ = 'Japnix'
 
-
 DEBUG = True
 
 
@@ -98,7 +97,7 @@ class Player:
     def removePack(self, index):
         self.packs.pop(index)
 
-    def getPack(self,index):
+    def getPack(self, index):
         return self.packs[index]
 
     def openPack(self):
@@ -110,13 +109,13 @@ class Player:
 
 
 class Game:
-    def __init__(self, numofplayers=int(), debug=False, players=None):
+    def __init__(self, numofplayers=None, debug=False, players=None):
         self.players = players
         self.numofplayers = numofplayers
         self.round = 1
         self.packsperplayer = 5
         self.cardsperpack = 12
-        self.totalpacks = int()
+        self.totalpacks = None
         self.cube = None
         self.debug = debug
 
@@ -129,11 +128,12 @@ class Game:
                 player.addPack(self.cube.getPack(0))
                 self.cube.removePack(0)
 
-    def askNumPlayers(self):
+    @staticmethod
+    def askNumPlayers():
         while True:
             try:
                 numberofplayers = int(input('How many players will be drafting (1-8)? '))
-                while numberofplayers not in range(1,9):
+                while numberofplayers not in range(1, 9):
                     print('This is not a valid number of players')
                     numberofplayers = int(input('How many players will be drafting (1-8)? '))
 
@@ -142,20 +142,21 @@ class Game:
                 print('You did not input an integer')
 
     def askPlayerNames(self):
-        for i in range(0,self.numofplayers):
-            name = input(f"What is Player {i+1}'s Name? ")
+        for i in range(0, self.numofplayers):
+            name = input(f"What is Player {i + 1}'s Name? ")
             self.addPlayer(Player(name))
 
     def prepareGame(self):
         if not self.players:
             self.numofplayers = self.askNumPlayers()
+            self.players = []
             self.askPlayerNames()
             self.totalpacks = self.numofplayers * self.packsperplayer
             self.cube = Cube(cardsperpack=12, totalpacks=self.totalpacks)
         else:
             self.numofplayers = len(self.players)
             self.totalpacks = self.numofplayers * self.packsperplayer
-            for index in range(0,len(self.players)):
+            for index in range(0, len(self.players)):
                 self.players[index] = Player(self.players[index])
             self.cube = Cube(cardsperpack=12, totalpacks=self.totalpacks)
 
@@ -218,7 +219,7 @@ class Game:
         return self.players.index(player)
 
     def startGame(self):
-        for round in range(0, 5):
+        for i in range(0, 5):
             if self.round % 2 != 0:
                 print(f"Beginning of Round {game.round} - PASS LEFT")
             else:
@@ -269,5 +270,3 @@ game.startGame()
 game.finalSelectedToJson('draft.json')
 
 t.stop()
-
-
